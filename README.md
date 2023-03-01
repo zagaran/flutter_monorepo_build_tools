@@ -3,7 +3,8 @@
 ## Usage
 
 1. `flutter pub get monorepo_build_tool`
-2. create & populate `mdg-config.yaml`
+2. `nano monorepo.yaml`
+   1. see `monorepo.sample.yaml` for an example of how to configure
 3. `flutter run monorepo_build_tool`
 
 
