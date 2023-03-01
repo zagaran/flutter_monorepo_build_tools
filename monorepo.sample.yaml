@@ -1,0 +1,15 @@
+# Global Configurations
+entrypoint: "path/to/project"
+# if your entrypoint is within the <packages_dir_name> directory e.g. path/to/project/<packages_dir_name>/app, set to true
+is_same_file_directory: true
+packages_dir_name: "packages"
+system_type: "flutter"
+verbose_output: false
+
+# relative to entrypoint
+output_file_directory: '../../.circleci'
+
+# CI Configurations
+circle_ci:
+  # relative to entrypoint
+  input_file_directory: "../../.circleci/src"

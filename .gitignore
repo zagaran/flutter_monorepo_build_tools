@@ -19,3 +19,8 @@ doc/api/
 *.js_
 *.js.deps
 *.js.map
+monorepo.yaml
+monorepo.yml
+
+# IDE config, settings
+.idea/

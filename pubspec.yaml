@@ -1,0 +1,16 @@
+name: monorepo_build_tool
+description: A sample command-line application.
+version: 1.0.0
+# repository: https://github.com/my_org/my_repo
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dependencies:
+  json2yaml: ^3.0.0
+  path: ^1.8.3
+  yaml: ^3.1.1
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.21.0

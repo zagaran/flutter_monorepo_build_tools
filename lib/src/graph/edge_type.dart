@@ -1,0 +1,1 @@
+enum EdgeType { directed, undirected }
