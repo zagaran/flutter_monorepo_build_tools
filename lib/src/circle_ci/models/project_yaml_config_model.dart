@@ -1,5 +1,5 @@
-import 'package:monorepo_build_tool/src/circle_ci/models/orbs_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/worflows_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/orbs_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/worflows_model.dart';
 
 class ProjectYamlConfigModel {
   double? version;

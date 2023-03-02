@@ -1,4 +1,4 @@
-import 'package:monorepo_build_tool/src/circle_ci/models/path_filtering_filter_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/path_filtering_filter_model.dart';
 
 class JobModel {
   PathFilteringFilterModel? pathFilteringFilter;

@@ -1,4 +1,4 @@
-import 'package:monorepo_build_tool/src/circle_ci/models/job_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/job_model.dart';
 
 class AlwaysRunModel {
   List<JobModel>? jobs;

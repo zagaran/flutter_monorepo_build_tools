@@ -1,18 +1,18 @@
 import 'dart:io';
 
-import 'package:monorepo_build_tool/src/circle_ci/circle_ci_update_mapping_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/always_run_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/boolean_parameter_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/continue_workflow_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/job_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/path_filtering_filter_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/project_yaml_config_model.dart';
-import 'package:monorepo_build_tool/src/circle_ci/models/worflows_model.dart';
-import 'package:monorepo_build_tool/src/graph/graph.dart';
-import 'package:monorepo_build_tool/src/graph/vertex.dart';
-import 'package:monorepo_build_tool/src/json/json_to_yaml_converter.dart';
-import 'package:monorepo_build_tool/src/update_manager/update_manager.dart';
-import 'package:monorepo_build_tool/src/yaml/yaml_ext.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/circle_ci_update_mapping_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/always_run_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/boolean_parameter_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/continue_workflow_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/job_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/path_filtering_filter_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/project_yaml_config_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/worflows_model.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/graph.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
+import 'package:flutter_monorepo_build_tools/src/json/json_to_yaml_converter.dart';
+import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
+import 'package:flutter_monorepo_build_tools/src/yaml/yaml_ext.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 

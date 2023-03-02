@@ -1,7 +1,7 @@
-name: monorepo_build_tool
-description: A sample command-line application.
+name: flutter_monorepo_build_tools
+description: A set of command-line tools to help automate common monorepo tasks.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/zagaran/flutter_monorepo_build_tools
 
 environment:
   sdk: '>=2.12.0 <3.0.0'

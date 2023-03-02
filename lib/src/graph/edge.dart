@@ -1,4 +1,4 @@
-import 'package:monorepo_build_tool/src/graph/vertex.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
 
 class Edge<T> {
   const Edge(

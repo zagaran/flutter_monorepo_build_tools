@@ -1,12 +1,12 @@
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:monorepo_build_tool/src/dart_utils/pubspec_methods.dart';
-import 'package:monorepo_build_tool/src/graph/adjacency_list.dart';
-import 'package:monorepo_build_tool/src/graph/graph.dart';
-import 'package:monorepo_build_tool/src/graph/graph_ext.dart';
-import 'package:monorepo_build_tool/src/graph/vertex.dart';
-import 'package:monorepo_build_tool/src/update_manager/update_manager.dart';
+import 'package:flutter_monorepo_build_tools/src/dart_utils/pubspec_methods.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/adjacency_list.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/graph.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/graph_ext.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
+import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 

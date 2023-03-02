@@ -1,4 +1,4 @@
-import 'package:monorepo_build_tool/src/circle_ci/models/always_run_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/always_run_model.dart';
 
 class WorkflowsModel {
   AlwaysRunModel? alwaysRun;

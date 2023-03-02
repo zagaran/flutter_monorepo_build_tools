@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:monorepo_build_tool/src/circle_ci/circle_ci_update_manager.dart';
-import 'package:monorepo_build_tool/src/monorepo_build_tool.dart';
-import 'package:monorepo_build_tool/src/update_manager/update_manager.dart';
-import 'package:monorepo_build_tool/src/yaml/exceptions.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/circle_ci_update_manager.dart';
+import 'package:flutter_monorepo_build_tools/src/monorepo_build_tool.dart';
+import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
+import 'package:flutter_monorepo_build_tools/src/yaml/exceptions.dart';
 import 'package:yaml/yaml.dart';
 
 final String defaultConfigPath = 'monorepo.yaml';

@@ -1,6 +1,6 @@
-import 'package:monorepo_build_tool/src/graph/edge.dart';
-import 'package:monorepo_build_tool/src/graph/edge_type.dart';
-import 'package:monorepo_build_tool/src/graph/vertex.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/edge.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/edge_type.dart';
+import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
 
 abstract class Graph<E> {
   Iterable<Vertex<E>> get vertices;
