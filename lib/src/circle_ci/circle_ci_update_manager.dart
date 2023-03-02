@@ -96,10 +96,11 @@ class CircleCiUpdateManager extends UpdateManager {
         (element) => fileVertex.data.path.contains(element.relativePackagePath),
       )) {
         List<String> splitPath = p.split(fileVertex.data.path);
+
         allMappings.add(
           CircleCiUpdateMappingModel(
-            relativePackagePath: p.join(splitPath[2], splitPath[3]),
-            packageName: splitPath[3],
+            relativePackagePath: p.joinAll(splitPath),
+            packageName: splitPath[splitPath.length - 1],
           ),
         );
       }
@@ -173,7 +174,7 @@ class CircleCiUpdateManager extends UpdateManager {
     }
 
     // go through workflows and find relevant workflows to update
-    Map<String, dynamic> workflowsMap = continueConfigJson['workflows'] ??= {};
+    Map<String, dynamic> workflowsMap = continueConfigJson['workflows'] ??= <String, dynamic>{};
     Map<String, WorkflowModel> workflows = workflowsMap
         .map((key, value) => MapEntry(key, WorkflowModel.fromJson(value)));
     const List<String> defaultJobs = [

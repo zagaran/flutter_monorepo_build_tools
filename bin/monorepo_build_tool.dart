@@ -27,52 +27,62 @@ void main(List<String> arguments) async {
     configString,
     sourceUrl: configFile.uri,
   );
-  final reader = Directory(configContents['entrypoint']);
-  if (!reader.existsSync()) {
-    throw ConfigException(
-        "Could not find entrypoint directory at ${reader.path}. Exiting...");
+
+  if (configContents['entrypoints'] == null ||
+      configContents['entrypoints'] is! List) {
+    throw ConfigException("entrypoints must be an array of paths");
   }
 
-  final String packagesPath = configContents['packages_dir_name'] ?? 'packages';
-  final String outputFileDirectory =
-      configContents['output_file_directory'] ?? 'dist';
-  final bool isSamePackagesDir =
-      configContents['is_same_file_directory'] ?? false;
-  final bool verbose = configContents['verbose_output'] ?? false;
-
-  UpdateManager? updateManager;
-  if (configContents.containsKey('circle_ci')) {
-    if (configContents['circle_ci']['input_file_directory'] == null) {
+  for (String entrypoint in configContents['entrypoints']) {
+    print("Beginning run for entrypoint $entrypoint");
+    final reader = Directory(entrypoint);
+    if (!reader.existsSync()) {
       throw ConfigException(
-          "You must provide a circle_ci input_file_directory input. Exiting...");
+          "Could not find entrypoint directory at ${reader.path}. Exiting...");
     }
 
-    updateManager = CircleCiUpdateManager(
-      originDirectory: reader,
-      inputDirectory: configContents['circle_ci']['input_file_directory'],
-      continueOutputFileDirectory: outputFileDirectory,
-      dryRun: dryRun,
+    final String packagesPath =
+        configContents['packages_dir_name'] ?? 'packages';
+    final String outputFileDirectory =
+        configContents['output_file_directory'] ?? 'dist';
+    final bool isSamePackagesDir =
+        configContents['is_same_file_directory'] ?? false;
+    final bool verbose = configContents['verbose_output'] ?? false;
+
+    UpdateManager? updateManager;
+    if (configContents.containsKey('circle_ci')) {
+      if (configContents['circle_ci']['input_file_directory'] == null) {
+        throw ConfigException(
+            "You must provide a circle_ci input_file_directory input. Exiting...");
+      }
+
+      updateManager = CircleCiUpdateManager(
+        originDirectory: reader,
+        inputDirectory: configContents['circle_ci']['input_file_directory'],
+        continueOutputFileDirectory: outputFileDirectory,
+        dryRun: dryRun,
+      );
+    }
+
+    if (updateManager == null) {
+      throw ConfigException("You must configure a CI handler. Exiting...");
+    }
+
+    final MonorepoBuildTool tool = MonorepoBuildTool(
+      origin: reader,
+      packagesPath: packagesPath,
+      isSamePackagesDir: isSamePackagesDir,
+      updateManager: updateManager,
+      verboseOutput: verbose,
     );
-  }
 
-  if (updateManager == null) {
-    throw ConfigException("You must configure a CI handler. Exiting...");
-  }
-
-  final MonorepoBuildTool tool = MonorepoBuildTool(
-    origin: reader,
-    packagesPath: packagesPath,
-    isSamePackagesDir: isSamePackagesDir,
-    updateManager: updateManager,
-    verboseOutput: verbose,
-  );
-
-  await tool.init();
-  if (dryRun) {
-    print(
-        'Dry run; generated files will not be written to disk.\n\nPrinting dependency graph:');
-    print(tool.graph);
-  } else {
-    await tool.assignNewCircleCiDependencies();
+    await tool.init();
+    if (dryRun) {
+      print(
+          'Dry run; generated files will not be written to disk.\n\nPrinting dependency graph:');
+      print(tool.graph);
+    } else {
+      await tool.assignNewCircleCiDependencies();
+    }
   }
 }
