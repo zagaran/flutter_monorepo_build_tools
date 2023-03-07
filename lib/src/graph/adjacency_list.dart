@@ -18,14 +18,24 @@ class AdjacencyList<E> implements Graph<E> {
   @override
   void addEdge(Vertex<E> source, Vertex<E> destination,
       {EdgeType edgeType = EdgeType.directed, double? weight = 1}) {
-    _connections[source]?.add(
-      Edge<E>(source, destination, weight),
-    );
-    if (edgeType == EdgeType.undirected) {
+    if (!_doesEdgeExist(source, destination)) {
+      _connections[source]?.add(
+        Edge<E>(source, destination, weight),
+      );
+    }
+    if (edgeType == EdgeType.undirected &&
+        !_doesEdgeExist(destination, source)) {
       _connections[destination]?.add(
         Edge<E>(destination, source, weight),
       );
     }
+  }
+
+  bool _doesEdgeExist(Vertex<E> source, Vertex<E> destination) {
+    return _connections.keys.any((element) => element.data == source.data) &&
+        _connections[source]!.any((element) =>
+            element.source.data == source.data &&
+            element.destination.data == destination.data);
   }
 
   @override

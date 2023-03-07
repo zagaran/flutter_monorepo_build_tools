@@ -18,24 +18,25 @@ import 'package:yaml/yaml.dart';
 
 class CircleCiUpdateManager extends UpdateManager {
   late final File configFile;
-  late final String entrypointFileName;
+  late final List<String> entrypointFileNames;
   late final File configOutputFile;
   late final String inputDirectory;
-  final Directory originDirectory;
+  final String originDirectoryPath;
   final String continueOutputFileDirectory;
   final bool dryRun;
 
   CircleCiUpdateManager({
-    required this.originDirectory,
+    required this.originDirectoryPath,
     required this.inputDirectory,
     required this.continueOutputFileDirectory,
     this.dryRun = false,
+    required List<String> projectNames,
   }) {
     configFile =
-        File(p.join(originDirectory.path, inputDirectory, 'config.yml'));
-    entrypointFileName = p.split(originDirectory.path).last;
+        File(p.join(originDirectoryPath, inputDirectory, 'config.yml'));
+    entrypointFileNames = projectNames;
     configOutputFile = File(p.join(
-      originDirectory.path,
+      originDirectoryPath,
       continueOutputFileDirectory,
       'config.yml',
     ));
@@ -147,7 +148,7 @@ class CircleCiUpdateManager extends UpdateManager {
     Graph<Directory> graph,
   ) async {
     final File continueConfigFile = File(p.join(
-      originDirectory.path,
+      originDirectoryPath,
       inputDirectory,
       filteringFilterModel.configPath!.replaceAll('.circleci/', ''),
     ));
@@ -174,27 +175,31 @@ class CircleCiUpdateManager extends UpdateManager {
     }
 
     // go through workflows and find relevant workflows to update
-    Map<String, dynamic> workflowsMap = continueConfigJson['workflows'] ??= <String, dynamic>{};
+    Map<String, dynamic> workflowsMap =
+        continueConfigJson['workflows'] ??= <String, dynamic>{};
     Map<String, WorkflowModel> workflows = workflowsMap
         .map((key, value) => MapEntry(key, WorkflowModel.fromJson(value)));
     const List<String> defaultJobs = [
       'build_android',
       'build_ios',
     ];
-    final List<String> entrypointPermutations = [
-      '$entrypointFileName-build',
-      '${entrypointFileName}_build',
-      'build_$entrypointFileName',
-      'build-$entrypointFileName',
-      '$entrypointFileName-commit',
-      '${entrypointFileName}_commit',
-      'commit_$entrypointFileName',
-      'commit-$entrypointFileName',
-      '$entrypointFileName-deploy',
-      '${entrypointFileName}_deploy',
-      'deploy_$entrypointFileName',
-      'deploy-$entrypointFileName',
-    ];
+    final List<String> entrypointPermutations = entrypointFileNames
+        .map((entrypointFileName) => [
+              '$entrypointFileName-build',
+              '${entrypointFileName}_build',
+              'build_$entrypointFileName',
+              'build-$entrypointFileName',
+              '$entrypointFileName-commit',
+              '${entrypointFileName}_commit',
+              'commit_$entrypointFileName',
+              'commit-$entrypointFileName',
+              '$entrypointFileName-deploy',
+              '${entrypointFileName}_deploy',
+              'deploy_$entrypointFileName',
+              'deploy-$entrypointFileName',
+            ])
+        .expand((element) => element)
+        .toList();
     workflows.forEach((key, value) {
       if (!defaultJobs.contains(key) && !entrypointPermutations.contains(key)) {
         return;
@@ -224,7 +229,7 @@ class CircleCiUpdateManager extends UpdateManager {
         workflows.map((key, value) => MapEntry(key, value.toJson()));
     String yamlResult = convertToYaml(continueConfigJson);
     File outputContinueConfigFile = File(p.join(
-      originDirectory.path,
+      originDirectoryPath,
       continueOutputFileDirectory,
       filteringFilterModel.configPath!.replaceAll('.circleci/', ''),
     ));
