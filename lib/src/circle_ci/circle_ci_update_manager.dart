@@ -32,8 +32,11 @@ class CircleCiUpdateManager extends UpdateManager {
     this.dryRun = false,
     required List<String> projectNames,
   }) {
-    configFile =
-        File(p.join(originDirectoryPath, inputDirectory, 'config.yml'));
+    configFile = File(p.join(
+      originDirectoryPath,
+      inputDirectory,
+      'config.yml',
+    ));
     entrypointFileNames = projectNames;
     configOutputFile = File(p.join(
       originDirectoryPath,
@@ -78,9 +81,7 @@ class CircleCiUpdateManager extends UpdateManager {
       print("Dry run; printing generated mapping");
       print(convertToYaml(circleCiConfigContent.toJson()));
     } else {
-      updateNewMapping(
-        circleCiConfigContent,
-      );
+      updateNewMapping(circleCiConfigContent);
     }
   }
 
@@ -166,7 +167,8 @@ class CircleCiUpdateManager extends UpdateManager {
                 .map((key, value) => MapEntry(
                       key,
                       BooleanParameterModel.fromJson(
-                          value as Map<String, dynamic>),
+                        value as Map<String, dynamic>,
+                      ),
                     ))
             : {};
     parametersMap.removeWhere((key, value) => !allParameterNames.contains(key));
