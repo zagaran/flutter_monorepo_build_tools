@@ -230,7 +230,6 @@ class CircleCiUpdateManager extends UpdateManager {
             .toList();
         whenModel.setOrParameters(directDependenciesParameters);
       }
-      ;
       continueConfigJson['workflows'] =
           workflows.map((key, value) => MapEntry(key, value.toJson()));
       String yamlResult = convertToYaml(continueConfigJson);
