@@ -213,7 +213,7 @@ class CircleCiUpdateManager extends UpdateManager {
         Vertex<Directory> origin;
         if (entrypointPermutations.contains(key)) {
           origin = graph.vertices.firstWhere(
-              (vertex) => vertex.data.path.contains(entrypointFileName));
+              (vertex) => p.split(vertex.data.path).last == entrypointFileName);
         } else if (defaultJobs.contains(key)) {
           origin = graph.vertices.first;
         } else {
