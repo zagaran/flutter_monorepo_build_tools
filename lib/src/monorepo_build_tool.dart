@@ -11,7 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 class MonorepoBuildTool {
-  final Directory origin;
+  final List<Directory> origins;
   final String packagesPath;
   final bool isSamePackagesDir;
   final Graph<Directory> graph = AdjacencyList<Directory>();
@@ -19,7 +19,7 @@ class MonorepoBuildTool {
   final bool verboseOutput;
 
   MonorepoBuildTool({
-    required this.origin,
+    required this.origins,
     this.packagesPath = 'packages',
     this.isSamePackagesDir = false,
     required this.updateManager,
@@ -28,46 +28,48 @@ class MonorepoBuildTool {
 
   Future<void> init() async {
     final Queue<Directory> queue = Queue();
-    queue.add(origin);
-    graph.createVertex(origin);
-    while (queue.isNotEmpty) {
-      final Directory file = queue.removeFirst();
-      Vertex<Directory> vertex = graph.getOrCreateVertex(
-        file,
-        (otherFile) => otherFile.path == file.path,
-      );
+    for (Directory origin in origins) {
+      queue.add(origin);
+      graph.createVertex(origin);
+      while (queue.isNotEmpty) {
+        final Directory file = queue.removeFirst();
+        Vertex<Directory> vertex = graph.getOrCreateVertex(
+          file,
+          (otherFile) => otherFile.path == file.path,
+        );
 
-      // Pubspec stuff
-      final File pubspecFile = File(generatePubspecPath(file.path));
-      final content = await pubspecFile.readAsString();
-      YamlMap yamlFileContents = await loadYaml(
-        content,
-        sourceUrl: pubspecFile.uri,
-      );
-      YamlMap dependencies = yamlFileContents['dependencies'] as YamlMap;
-      List<String> localDependencies = dependencies.entries
-          .where((element) => element.value is YamlMap)
-          .where(
-              (element) => ((element).value as YamlMap).keys.contains('path'))
-          .map((e) => (e.value as YamlMap)['path'] as String)
-          .toList();
+        // Pubspec stuff
+        final File pubspecFile = File(generatePubspecPath(file.path));
+        final content = await pubspecFile.readAsString();
+        YamlMap yamlFileContents = await loadYaml(
+          content,
+          sourceUrl: pubspecFile.uri,
+        );
+        YamlMap dependencies = yamlFileContents['dependencies'] as YamlMap;
+        List<String> localDependencies = dependencies.entries
+            .where((element) => element.value is YamlMap)
+            .where(
+                (element) => ((element).value as YamlMap).keys.contains('path'))
+            .map((e) => (e.value as YamlMap)['path'] as String)
+            .toList();
 
-      for (String path in localDependencies) {
-        final String packagePath;
-        if (!path.contains(packagesPath)) {
-          packagePath = path.replaceAll('../', '$packagesPath/');
-        } else {
-          packagePath = path;
+        for (String path in localDependencies) {
+          final String packagePath;
+          if (!path.contains(packagesPath)) {
+            packagePath = path.replaceAll('../', '$packagesPath/');
+          } else {
+            packagePath = path;
+          }
+          final Directory dependencyFile =
+              locateDependencyFile(isSamePackagesDir, origin, packagePath);
+          queue.add(dependencyFile);
+          graph.addEdge(
+              vertex,
+              graph.getOrCreateVertex(
+                dependencyFile,
+                (otherFile) => otherFile.path == dependencyFile.path,
+              ));
         }
-        final Directory dependencyFile =
-            locateDependencyFile(isSamePackagesDir, origin, packagePath);
-        queue.add(dependencyFile);
-        graph.addEdge(
-            vertex,
-            graph.getOrCreateVertex(
-              dependencyFile,
-              (otherFile) => otherFile.path == dependencyFile.path,
-            ));
       }
     }
   }

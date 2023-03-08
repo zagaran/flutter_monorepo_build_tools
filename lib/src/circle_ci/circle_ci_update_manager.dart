@@ -18,24 +18,28 @@ import 'package:yaml/yaml.dart';
 
 class CircleCiUpdateManager extends UpdateManager {
   late final File configFile;
-  late final String entrypointFileName;
+  late final List<String> entrypointFileNames;
   late final File configOutputFile;
   late final String inputDirectory;
-  final Directory originDirectory;
+  final String originDirectoryPath;
   final String continueOutputFileDirectory;
   final bool dryRun;
 
   CircleCiUpdateManager({
-    required this.originDirectory,
+    required this.originDirectoryPath,
     required this.inputDirectory,
     required this.continueOutputFileDirectory,
     this.dryRun = false,
+    required List<String> projectNames,
   }) {
-    configFile =
-        File(p.join(originDirectory.path, inputDirectory, 'config.yml'));
-    entrypointFileName = p.split(originDirectory.path).last;
+    configFile = File(p.join(
+      originDirectoryPath,
+      inputDirectory,
+      'config.yml',
+    ));
+    entrypointFileNames = projectNames;
     configOutputFile = File(p.join(
-      originDirectory.path,
+      originDirectoryPath,
       continueOutputFileDirectory,
       'config.yml',
     ));
@@ -77,9 +81,7 @@ class CircleCiUpdateManager extends UpdateManager {
       print("Dry run; printing generated mapping");
       print(convertToYaml(circleCiConfigContent.toJson()));
     } else {
-      updateNewMapping(
-        circleCiConfigContent,
-      );
+      updateNewMapping(circleCiConfigContent);
     }
   }
 
@@ -95,7 +97,9 @@ class CircleCiUpdateManager extends UpdateManager {
       if (!allMappings.any(
         (element) => fileVertex.data.path.contains(element.relativePackagePath),
       )) {
-        List<String> splitPath = p.split(fileVertex.data.path);
+        // remove . from split path
+        List<String> splitPath =
+            p.split(fileVertex.data.path).where((e) => e != '.').toList();
 
         allMappings.add(
           CircleCiUpdateMappingModel(
@@ -147,7 +151,7 @@ class CircleCiUpdateManager extends UpdateManager {
     Graph<Directory> graph,
   ) async {
     final File continueConfigFile = File(p.join(
-      originDirectory.path,
+      originDirectoryPath,
       inputDirectory,
       filteringFilterModel.configPath!.replaceAll('.circleci/', ''),
     ));
@@ -163,7 +167,8 @@ class CircleCiUpdateManager extends UpdateManager {
                 .map((key, value) => MapEntry(
                       key,
                       BooleanParameterModel.fromJson(
-                          value as Map<String, dynamic>),
+                        value as Map<String, dynamic>,
+                      ),
                     ))
             : {};
     parametersMap.removeWhere((key, value) => !allParameterNames.contains(key));
@@ -174,31 +179,15 @@ class CircleCiUpdateManager extends UpdateManager {
     }
 
     // go through workflows and find relevant workflows to update
-    Map<String, dynamic> workflowsMap = continueConfigJson['workflows'] ??= <String, dynamic>{};
+    Map<String, dynamic> workflowsMap =
+        continueConfigJson['workflows'] ??= <String, dynamic>{};
     Map<String, WorkflowModel> workflows = workflowsMap
         .map((key, value) => MapEntry(key, WorkflowModel.fromJson(value)));
     const List<String> defaultJobs = [
       'build_android',
       'build_ios',
     ];
-    final List<String> entrypointPermutations = [
-      '$entrypointFileName-build',
-      '${entrypointFileName}_build',
-      'build_$entrypointFileName',
-      'build-$entrypointFileName',
-      '$entrypointFileName-commit',
-      '${entrypointFileName}_commit',
-      'commit_$entrypointFileName',
-      'commit-$entrypointFileName',
-      '$entrypointFileName-deploy',
-      '${entrypointFileName}_deploy',
-      'deploy_$entrypointFileName',
-      'deploy-$entrypointFileName',
-    ];
     workflows.forEach((key, value) {
-      if (!defaultJobs.contains(key) && !entrypointPermutations.contains(key)) {
-        return;
-      }
       final WhenModel whenModel;
       if (value.when is WhenModel) {
         whenModel = value.when as WhenModel;
@@ -208,28 +197,52 @@ class CircleCiUpdateManager extends UpdateManager {
       } else {
         return;
       }
-      Vertex<Directory> origin = graph.vertices.first;
-      List<Vertex<Directory>> directDependencies =
-          graph.edges(origin).map((e) => e.destination).toList();
-      List<String> directDependenciesParameters = allParameterNames
-          .where((parameter) => directDependencies.any((element) {
-                List<String> splitPath = p.split(element.data.path);
-                return splitPath[splitPath.length - 1] ==
-                    parameter.substring(0, parameter.indexOf('_updated'));
-              }))
-          .toList();
-      whenModel.setOrParameters(directDependenciesParameters);
+      for (String entrypointFileName in entrypointFileNames) {
+        final List<String> entrypointPermutations = [
+          '$entrypointFileName-build',
+          '${entrypointFileName}_build',
+          'build_$entrypointFileName',
+          'build-$entrypointFileName',
+          '$entrypointFileName-commit',
+          '${entrypointFileName}_commit',
+          'commit_$entrypointFileName',
+          'commit-$entrypointFileName',
+          '$entrypointFileName-deploy',
+          '${entrypointFileName}_deploy',
+          'deploy_$entrypointFileName',
+          'deploy-$entrypointFileName',
+        ];
+        Vertex<Directory> origin;
+        if (entrypointPermutations.contains(key)) {
+          origin = graph.vertices.firstWhere(
+              (vertex) => p.split(vertex.data.path).last == entrypointFileName);
+        } else if (defaultJobs.contains(key)) {
+          origin = graph.vertices.first;
+        } else {
+          continue;
+        }
+        List<Vertex<Directory>> directDependencies =
+            graph.edges(origin).map((e) => e.destination).toList();
+        List<String> directDependenciesParameters = allParameterNames
+            .where((parameter) => directDependencies.any((element) {
+                  List<String> splitPath = p.split(element.data.path);
+                  return splitPath[splitPath.length - 1] ==
+                      parameter.substring(0, parameter.indexOf('_updated'));
+                }))
+            .toList();
+        whenModel.setOrParameters(directDependenciesParameters);
+      }
+      continueConfigJson['workflows'] =
+          workflows.map((key, value) => MapEntry(key, value.toJson()));
+      String yamlResult = convertToYaml(continueConfigJson);
+      File outputContinueConfigFile = File(p.join(
+        originDirectoryPath,
+        continueOutputFileDirectory,
+        filteringFilterModel.configPath!.replaceAll('.circleci/', ''),
+      ));
+      outputContinueConfigFile.createSync();
+      outputContinueConfigFile.writeAsStringSync(yamlResult);
     });
-    continueConfigJson['workflows'] =
-        workflows.map((key, value) => MapEntry(key, value.toJson()));
-    String yamlResult = convertToYaml(continueConfigJson);
-    File outputContinueConfigFile = File(p.join(
-      originDirectory.path,
-      continueOutputFileDirectory,
-      filteringFilterModel.configPath!.replaceAll('.circleci/', ''),
-    ));
-    outputContinueConfigFile.createSync();
-    outputContinueConfigFile.writeAsStringSync(yamlResult);
   }
   //////////////////////////////////////////////////////////////////////////////
   //                              Initializer                                 //
