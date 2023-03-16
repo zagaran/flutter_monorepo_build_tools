@@ -5,10 +5,13 @@ import 'package:flutter_monorepo_build_tools/src/monorepo_build_tool.dart';
 import 'package:flutter_monorepo_build_tools/src/project_name_and_entrypoint_tuple.dart';
 import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
 import 'package:flutter_monorepo_build_tools/src/yaml/exceptions.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 final String defaultConfigPath = 'monorepo.yaml';
+
+final log = Logger('Monorepo Build Tool');
 
 // arguments[0] is an optional override path to the config
 void main(List<String> arguments) async {
@@ -42,8 +45,8 @@ void main(List<String> arguments) async {
       projectName: project.keys.first,
       projectEntrypoint: project.values.first,
     );
-    print(
-        "Beginning run for entrypoint ${projectNameAndEntrypointTuple.projectName}");
+    log.info(
+        "Registering entrypoint ${projectNameAndEntrypointTuple.projectName} for dependency graphing");
     final reader = Directory(projectNameAndEntrypointTuple.projectEntrypoint);
     if (!reader.existsSync()) {
       throw ConfigException(
@@ -88,11 +91,11 @@ void main(List<String> arguments) async {
   );
 
   await tool.init();
+  log.info("Dependency graph created.");
   if (dryRun) {
-    print(
-        'Dry run; generated files will not be written to disk.\n\nPrinting dependency graph:');
-    print(tool.graph);
-  } else {
-    await tool.assignNewCircleCiDependencies();
+    log.info(
+        'Dry run; generated files will not be written to disk.\n\nLogging dependency graph:');
+    log.info(tool.graph);
   }
+  await tool.assignNewCircleCiDependencies();
 }

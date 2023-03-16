@@ -1,3 +1,5 @@
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/job_model.dart';
+
 class PathFilteringFilterModel {
   String? name;
   String? mapping;
@@ -6,6 +8,13 @@ class PathFilteringFilterModel {
 
   PathFilteringFilterModel(
       {this.name, this.mapping, this.baseRevision, this.configPath});
+
+  PathFilteringFilterModel.fromJob(WorkflowJob job) {
+    name = job.params!['name'];
+    mapping = job.params!['mapping'];
+    baseRevision = job.params!['base-revision'];
+    configPath = job.params!['config-path'];
+  }
 
   PathFilteringFilterModel.fromJson(Map<String, dynamic> json) {
     name = json['name'];

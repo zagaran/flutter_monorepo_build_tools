@@ -1,21 +1,28 @@
-import 'package:flutter_monorepo_build_tools/src/circle_ci/models/path_filtering_filter_model.dart';
+class WorkflowJob {
+  Map<String, dynamic>? params;
+  late String key;
+  WorkflowJob({this.params, this.key = ''});
 
-class JobModel {
-  PathFilteringFilterModel? pathFilteringFilter;
+  WorkflowJob.fromJson(Map<String, dynamic> json) {
+    params = json;
+  }
 
-  JobModel({this.pathFilteringFilter});
-
-  JobModel.fromJson(Map<String, dynamic> json) {
-    pathFilteringFilter = json['path-filtering/filter'] != null
-        ? PathFilteringFilterModel.fromJson(json['path-filtering/filter'])
-        : null;
+  dynamic toYaml() {
+    if (params != null) {
+      return toJson();
+    }
+    return key;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (pathFilteringFilter != null) {
-      data['path-filtering/filter'] = pathFilteringFilter!.toJson();
-    }
-    return data;
+    return {key: params};
+  }
+
+  static List<WorkflowJob> fromJsonList(dynamic jsonList) {
+    return jsonList
+        .map<WorkflowJob>((m) => m is Map
+            ? (WorkflowJob.fromJson(m.values.first)..key = m.keys.first)
+            : WorkflowJob(key: m))
+        .toList();
   }
 }
