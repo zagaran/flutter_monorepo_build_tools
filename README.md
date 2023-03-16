@@ -5,8 +5,9 @@
 1. `flutter pub get flutter_monorepo_build_tools`
 2. `nano monorepo.yaml`
    1. see `monorepo.sample.yaml` for an example of how to configure
-3. `flutter run monorepo_build_tool`
+3. `dart run flutter_monorepo_build_tools:monorepo_build_tool`
 
+Re-run the tool whenever you add, rename, or remove a local package or if local package dependencies change.
 
 ## Config
 The Monorepo Build Tool is designed to be as configurable as is reasonably possible. Configuration options
@@ -49,6 +50,6 @@ workflows:
           config-path: .circleci/continue-config.yml
 ```
 3. Create however many `continue-config.yml` type files you need for your use case. It is important
-when naming jobs that they contain the name of your entrypoint directory. For example, if your job 
+when naming workflows that they contain the name of your entrypoint directory. For example, if your workflow 
 is related to an app `app`, it should be named something like `app_deploy`. For a full list of matching
 globs, see `entrypointPermutations` in `circle_ci_update_manager.dart`.

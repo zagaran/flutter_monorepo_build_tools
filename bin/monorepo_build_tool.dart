@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_monorepo_build_tools/src/circle_ci/circle_ci_update_manager.dart';
 import 'package:flutter_monorepo_build_tools/src/monorepo_build_tool.dart';
+import 'package:flutter_monorepo_build_tools/src/project_name_and_entrypoint_tuple.dart';
 import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
 import 'package:flutter_monorepo_build_tools/src/yaml/exceptions.dart';
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 final String defaultConfigPath = 'monorepo.yaml';
@@ -27,10 +29,27 @@ void main(List<String> arguments) async {
     configString,
     sourceUrl: configFile.uri,
   );
-  final reader = Directory(configContents['entrypoint']);
-  if (!reader.existsSync()) {
-    throw ConfigException(
-        "Could not find entrypoint directory at ${reader.path}. Exiting...");
+
+  if (configContents['entrypoints'] == null ||
+      configContents['entrypoints'] is! List) {
+    throw ConfigException("entrypoints must be an array of paths");
+  }
+
+  List<Directory> readers = [];
+  for (YamlMap project in configContents['entrypoints']) {
+    final ProjectNameAndEntrypointTuple projectNameAndEntrypointTuple =
+        ProjectNameAndEntrypointTuple(
+      projectName: project.keys.first,
+      projectEntrypoint: project.values.first,
+    );
+    print(
+        "Beginning run for entrypoint ${projectNameAndEntrypointTuple.projectName}");
+    final reader = Directory(projectNameAndEntrypointTuple.projectEntrypoint);
+    if (!reader.existsSync()) {
+      throw ConfigException(
+          "Could not find entrypoint directory at ${reader.path}. Exiting...");
+    }
+    readers.add(reader);
   }
 
   final String packagesPath = configContents['packages_dir_name'] ?? 'packages';
@@ -48,10 +67,11 @@ void main(List<String> arguments) async {
     }
 
     updateManager = CircleCiUpdateManager(
-      originDirectory: reader,
+      originDirectoryPath: Directory.current.path,
       inputDirectory: configContents['circle_ci']['input_file_directory'],
       continueOutputFileDirectory: outputFileDirectory,
       dryRun: dryRun,
+      projectNames: readers.map((reader) => p.split(reader.path).last).toList(),
     );
   }
 
@@ -60,7 +80,7 @@ void main(List<String> arguments) async {
   }
 
   final MonorepoBuildTool tool = MonorepoBuildTool(
-    origin: reader,
+    origins: readers,
     packagesPath: packagesPath,
     isSamePackagesDir: isSamePackagesDir,
     updateManager: updateManager,
