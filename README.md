@@ -1,22 +1,20 @@
 # Flutter Monorepo Build Tools
-
-## Usage
-
+ 
 1. `flutter pub get flutter_monorepo_build_tools`
 2. `nano monorepo.yaml`
    1. see `monorepo.sample.yaml` for an example of how to configure
-3. `dart run flutter_monorepo_build_tools:monorepo_build_tool`
+
+## Monorepo Build Tool
+
+### Usage
+
+`dart run flutter_monorepo_build_tools:monorepo_build_tool`
 
 Re-run the tool whenever you add, rename, or remove a local package or if local package dependencies change.
 
-## Config
-The Monorepo Build Tool is designed to be as configurable as is reasonably possible. Configuration options
-are broadly divisible into two categories: Local Options, which define the behavior of the tool locally
-e.g. sourcing files, helping to describe the structure of your file system, etc; and CI options,
-which define values specific to whichever CI you are using.
 
+### OOTB CI Support
 
-## OOTB CI Support
 At release, FMBT only contains out-of-the-box support for CircleCI using the `path-filtering` approach.
 
 To configure your monorepo:
@@ -53,3 +51,25 @@ workflows:
 when naming workflows that they contain the name of your entrypoint directory. For example, if your workflow 
 is related to an app `app`, it should be named something like `app_deploy`. For a full list of matching
 globs, see `entrypointPermutations` in `circle_ci_update_manager.dart`.
+
+### Known Limitations
+
+#### Limited use of single quotation marks in values
+
+Some string values are wrapped with single quotation marks in the output even when they are not 
+in the source. We believe this is due to `json2yaml`, which this package uses. It is unclear
+at this point whether it is possible to overcome this. We recommend that you run this tool on
+your existing configuration and validate the output before committing to this tool.
+
+If you have a line like this:
+
+```yaml
+- run: echo 'export PATH="$PATH:`pwd`/flutter/bin"' \>> $BASH_ENV
+```
+
+then you may have to refactor it into two lines, like so:
+
+```yaml
+- run: export PATH="$PATH:`pwd`/flutter/bin"
+- run: echo "$PATH" \>> $BASH_ENV
+```
