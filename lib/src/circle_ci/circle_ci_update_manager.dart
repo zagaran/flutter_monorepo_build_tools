@@ -183,10 +183,6 @@ class CircleCiUpdateManager extends UpdateManager {
         continueConfigJson['workflows'] ??= <String, dynamic>{};
     Map<String, WorkflowModel> workflows = workflowsMap
         .map((key, value) => MapEntry(key, WorkflowModel.fromJson(value)));
-    const List<String> defaultJobs = [
-      'build_android',
-      'build_ios',
-    ];
     workflows.forEach((key, value) {
       final WhenModel whenModel;
       if (value.when is WhenModel) {
@@ -216,8 +212,6 @@ class CircleCiUpdateManager extends UpdateManager {
         if (entrypointPermutations.contains(key)) {
           origin = graph.vertices.firstWhere(
               (vertex) => p.split(vertex.data.path).last == entrypointFileName);
-        } else if (defaultJobs.contains(key)) {
-          origin = graph.vertices.first;
         } else {
           continue;
         }

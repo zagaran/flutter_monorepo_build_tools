@@ -50,6 +50,6 @@ workflows:
           config-path: .circleci/continue-config.yml
 ```
 3. Create however many `continue-config.yml` type files you need for your use case. It is important
-when naming jobs that they contain the name of your entrypoint directory. For example, if your job 
+when naming workflows that they contain the name of your entrypoint directory. For example, if your workflow 
 is related to an app `app`, it should be named something like `app_deploy`. For a full list of matching
 globs, see `entrypointPermutations` in `circle_ci_update_manager.dart`.
