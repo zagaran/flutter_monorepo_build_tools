@@ -6,3 +6,6 @@
 
 - License modified from BSD3 to MIT
 - Fixed a bug resulting from file path assumptions
+- Refactored to support multiple entrypoints
+- updated README instructions
+- 
