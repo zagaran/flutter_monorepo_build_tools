@@ -171,12 +171,19 @@ class CircleCiUpdateManager extends UpdateManager {
                       ),
                     ))
             : {};
-    parametersMap.removeWhere((key, value) => !allParameterNames.contains(key));
+    parametersMap.removeWhere((key, value) =>
+        // if there is an old key for e.g. a package which no longer exists, remove it
+        key.endsWith('_updated') && !allParameterNames.contains(key));
     for (final String parameterName in allParameterNames) {
       if (parametersMap[parameterName] == null) {
         parametersMap[parameterName] = BooleanParameterModel();
       }
     }
+    continueConfigJson['parameters'] =
+        parametersMap.map((key, value) => MapEntry(
+              key,
+              value.toJson(),
+            ));
 
     // go through workflows and find relevant workflows to update
     Map<String, dynamic> workflowsMap =

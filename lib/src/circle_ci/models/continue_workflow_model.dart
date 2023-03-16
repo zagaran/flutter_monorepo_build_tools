@@ -44,10 +44,22 @@ class WhenModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'or': or,
-      'and': and,
-    };
+    if (and.isNotEmpty && or.isNotEmpty) {
+      return {
+        'and': [
+          {'or': or},
+          {'and': and},
+        ],
+      };
+    } else if (and.isNotEmpty) {
+      return {
+        'and': and,
+      };
+    } else {
+      return {
+        'or': or,
+      };
+    }
   }
 
   void setOrParameters(List<String> parameters) {
