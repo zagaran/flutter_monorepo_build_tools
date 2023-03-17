@@ -6,6 +6,8 @@ entrypoints:
 is_same_file_directory: true
 packages_dir_name: "packages"
 system_type: "flutter"
+# This flag affects whether the update tool will print its logs to the console; it is overridden
+# by the --verbose flag.
 verbose_output: false
 
 # relative to entrypoint
