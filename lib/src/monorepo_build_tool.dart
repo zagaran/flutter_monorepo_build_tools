@@ -7,6 +7,7 @@ import 'package:flutter_monorepo_build_tools/src/graph/graph.dart';
 import 'package:flutter_monorepo_build_tools/src/graph/graph_ext.dart';
 import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
 import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
@@ -27,6 +28,11 @@ class MonorepoBuildTool {
   });
 
   Future<void> init() async {
+    if (verboseOutput) {
+      Logger.root.onRecord.listen((record) {
+        print('${record.level.name}: ${record.time}: ${record.message}');
+      });
+    }
     final Queue<Directory> queue = Queue();
     for (Directory origin in origins) {
       queue.add(origin);

@@ -1,13 +1,15 @@
 name: flutter_monorepo_build_tools
 description: A set of command-line tools to help automate common monorepo tasks.
-version: 1.0.2
+version: 1.0.3
 repository: https://github.com/zagaran/flutter_monorepo_build_tools
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
+  collection: ^1.17.1
   json2yaml: ^3.0.0
+  logging: ^1.1.1
   path: ^1.8.3
   yaml: ^3.1.1
 

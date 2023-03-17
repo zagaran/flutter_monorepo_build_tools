@@ -1,20 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter_monorepo_build_tools/src/circle_ci/circle_ci_update_mapping_model.dart';
-import 'package:flutter_monorepo_build_tools/src/circle_ci/models/always_run_model.dart';
 import 'package:flutter_monorepo_build_tools/src/circle_ci/models/boolean_parameter_model.dart';
-import 'package:flutter_monorepo_build_tools/src/circle_ci/models/continue_workflow_model.dart';
 import 'package:flutter_monorepo_build_tools/src/circle_ci/models/job_model.dart';
 import 'package:flutter_monorepo_build_tools/src/circle_ci/models/path_filtering_filter_model.dart';
 import 'package:flutter_monorepo_build_tools/src/circle_ci/models/project_yaml_config_model.dart';
-import 'package:flutter_monorepo_build_tools/src/circle_ci/models/worflows_model.dart';
+import 'package:flutter_monorepo_build_tools/src/circle_ci/models/workflow_model.dart';
 import 'package:flutter_monorepo_build_tools/src/graph/graph.dart';
 import 'package:flutter_monorepo_build_tools/src/graph/vertex.dart';
 import 'package:flutter_monorepo_build_tools/src/json/json_to_yaml_converter.dart';
 import 'package:flutter_monorepo_build_tools/src/update_manager/update_manager.dart';
 import 'package:flutter_monorepo_build_tools/src/yaml/yaml_ext.dart';
+import 'package:logging/logging.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
+
+final log = Logger('CircleCI Update Manager');
 
 class CircleCiUpdateManager extends UpdateManager {
   late final File configFile;
@@ -53,35 +54,38 @@ class CircleCiUpdateManager extends UpdateManager {
         ProjectYamlConfigModel.fromJson(
       circleCiConfigContentJson,
     );
-    final List<JobModel> allJobs = _getAllJobs(circleCiConfigContent);
-    final List<JobModel> allJobsWithPathFiltering = allJobs
-        .where((element) => element.pathFilteringFilter != null)
-        .toList();
-    for (JobModel jobModel in allJobsWithPathFiltering) {
-      List<CircleCiUpdateMappingModel> allParameters =
-          mapCircleCiMappingsToDart(
-              jobModel.pathFilteringFilter!.mapping ?? '');
-      updateMappingNodeWithNewDataIfNeeded(
-        dependencyGraph,
-        allParameters,
-        jobModel.pathFilteringFilter!,
-      );
-      if (jobModel.pathFilteringFilter!.configPath != null) {
-        await _updateContinueConfigFile(
-          jobModel.pathFilteringFilter!,
-          allParameters,
-          dependencyGraph,
-        );
+
+    for (WorkflowModel workflow in circleCiConfigContent.workflows!) {
+      if (workflow.name == 'always-run') {
+        // find the path-filtering/filter job and update its 'mapping' value
+        for (WorkflowJob job in workflow.jobs!) {
+          if (job.key == 'path-filtering/filter') {
+            PathFilteringFilterModel pathFilter =
+                PathFilteringFilterModel.fromJob(job);
+            List<CircleCiUpdateMappingModel> allParameters =
+                mapCircleCiMappingsToDart(pathFilter.mapping ?? '');
+            updateMappingNodeWithNewDataIfNeeded(
+              dependencyGraph,
+              allParameters,
+              pathFilter,
+            );
+            if (pathFilter.configPath != null) {
+              await _updateContinueConfigFile(
+                pathFilter,
+                allParameters,
+                dependencyGraph,
+              );
+            }
+            job.params!['mapping'] = pathFilter.mapping;
+          }
+        }
       }
-      (circleCiConfigContent.workflows?.alwaysRun?.jobs)
-          ?.firstWhere((element) => element.pathFilteringFilter != null)
-          .pathFilteringFilter = jobModel.pathFilteringFilter!;
-    }
-    if (dryRun) {
-      print("Dry run; printing generated mapping");
-      print(convertToYaml(circleCiConfigContent.toJson()));
-    } else {
-      updateNewMapping(circleCiConfigContent);
+      if (dryRun) {
+        log.info("Dry run; logging generated mapping");
+        log.info(convertToYaml(circleCiConfigContent.toJson()));
+      } else {
+        updateNewMapping(circleCiConfigContent);
+      }
     }
   }
 
@@ -127,15 +131,6 @@ class CircleCiUpdateManager extends UpdateManager {
     return allMappings;
   }
 
-  List<JobModel> _getAllJobs(ProjectYamlConfigModel circleCiConfigContent) {
-    WorkflowsModel workflowsModel =
-        circleCiConfigContent.workflows ?? WorkflowsModel(alwaysRun: null);
-    workflowsModel.alwaysRun ??= AlwaysRunModel();
-    AlwaysRunModel alwaysRunModel = workflowsModel.alwaysRun!;
-    alwaysRunModel.jobs ??= [];
-    return alwaysRunModel.jobs!;
-  }
-
   void updateNewMapping(ProjectYamlConfigModel circleCiConfigContent) {
     configOutputFile.createSync();
     configOutputFile
@@ -171,18 +166,25 @@ class CircleCiUpdateManager extends UpdateManager {
                       ),
                     ))
             : {};
-    parametersMap.removeWhere((key, value) => !allParameterNames.contains(key));
+    parametersMap.removeWhere((key, value) =>
+        // if there is an old key for e.g. a package which no longer exists, remove it
+        key.endsWith('_updated') && !allParameterNames.contains(key));
     for (final String parameterName in allParameterNames) {
       if (parametersMap[parameterName] == null) {
         parametersMap[parameterName] = BooleanParameterModel();
       }
     }
+    continueConfigJson['parameters'] =
+        parametersMap.map((key, value) => MapEntry(
+              key,
+              value.toJson(),
+            ));
 
     // go through workflows and find relevant workflows to update
     Map<String, dynamic> workflowsMap =
         continueConfigJson['workflows'] ??= <String, dynamic>{};
-    Map<String, WorkflowModel> workflows = workflowsMap
-        .map((key, value) => MapEntry(key, WorkflowModel.fromJson(value)));
+    Map<String, WorkflowModel> workflows = workflowsMap.map((key, value) =>
+        MapEntry(key, WorkflowModel.fromJson(value)..name = key));
     workflows.forEach((key, value) {
       final WhenModel whenModel;
       if (value.when is WhenModel) {

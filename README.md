@@ -13,6 +13,14 @@
 Re-run the tool whenever you add, rename, or remove a local package or if local package dependencies change.
 
 
+### Arguments
+
+You can provide the following flags/options to modify the behavior of the monorepo build tool:
+
+| Flag    | Effect                 | Default Value |
+|---------|------------------------|---------------|
+| verbose | Enables printing logs. | `false`       |
+
 ### OOTB CI Support
 
 At release, FMBT only contains out-of-the-box support for CircleCI using the `path-filtering` approach.
@@ -54,7 +62,7 @@ globs, see `entrypointPermutations` in `circle_ci_update_manager.dart`.
 
 ### Known Limitations
 
-#### Limited use of single quotation marks in values
+#### Single quotation marks in values must be escaped
 
 Some string values are wrapped with single quotation marks in the output even when they are not 
 in the source. We believe this is due to `json2yaml`, which this package uses. It is unclear
@@ -67,9 +75,21 @@ If you have a line like this:
 - run: echo 'export PATH="$PATH:`pwd`/flutter/bin"' \>> $BASH_ENV
 ```
 
-then you may have to refactor it into two lines, like so:
+then you will need to escape the single quotes by prepending them with an additional single quote,
+like so:
 
 ```yaml
-- run: export PATH="$PATH:`pwd`/flutter/bin"
-- run: echo "$PATH" \>> $BASH_ENV
+- run: echo ''export PATH="$PATH:`pwd`/flutter/bin"'' \>> $BASH_ENV
 ```
+
+It is important that you do not wrap such a value in single quotes, e.g. 
+```yaml
+# DO NOT DO THIS
+- run: 'echo: ''something'''
+
+# DO THIS INSTEAD
+- run: echo ''something''
+```
+
+This will result in your output having unescaped single quotation marks, causing the overall config
+to be become impossible to parse.

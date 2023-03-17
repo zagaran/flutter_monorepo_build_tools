@@ -12,3 +12,9 @@
 # 1.0.2
 
 - Reorganize README, update with known limitations
+
+# 1.0.3
+
+- Fix bug with mixed and/or conditions for workflows
+- Fix bug where parameters were not correctly updated in generated continue-config
+- Overall refactor to use fewer models and be less verbose (& more flexible) with configs
