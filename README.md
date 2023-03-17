@@ -13,6 +13,14 @@
 Re-run the tool whenever you add, rename, or remove a local package or if local package dependencies change.
 
 
+### Arguments
+
+You can provide the following flags/options to modify the behavior of the monorepo build tool:
+
+| Flag    | Effect                 | Default Value |
+|---------|------------------------|---------------|
+| verbose | Enables printing logs. | `false`       |
+
 ### OOTB CI Support
 
 At release, FMBT only contains out-of-the-box support for CircleCI using the `path-filtering` approach.

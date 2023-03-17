@@ -15,6 +15,11 @@ final log = Logger('Monorepo Build Tool');
 
 // arguments[0] is an optional override path to the config
 void main(List<String> arguments) async {
+  if (arguments.contains('--verbose')) {
+    Logger.root.onRecord.listen((record) {
+      print('${record.level.name}: ${record.time}: ${record.message}');
+    });
+  }
   final String configPath = arguments.isNotEmpty
       ? arguments.firstWhere((arg) => arg.contains('.yaml'),
           orElse: () => defaultConfigPath)
