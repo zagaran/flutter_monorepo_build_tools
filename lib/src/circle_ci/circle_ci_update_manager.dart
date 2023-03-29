@@ -220,11 +220,13 @@ class CircleCiUpdateManager extends UpdateManager {
         List<Vertex<Directory>> directDependencies =
             graph.edges(origin).map((e) => e.destination).toList();
         List<String> directDependenciesParameters = allParameterNames
-            .where((parameter) => directDependencies.any((element) {
+            .where((parameter) =>
+                directDependencies.any((element) {
                   List<String> splitPath = p.split(element.data.path);
                   return splitPath[splitPath.length - 1] ==
                       parameter.substring(0, parameter.indexOf('_updated'));
-                }))
+                }) ||
+                parameter == '${entrypointFileName}_updated')
             .toList();
         whenModel.setOrParameters(directDependenciesParameters);
       }
